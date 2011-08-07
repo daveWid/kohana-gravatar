@@ -67,7 +67,7 @@ class Gravatar_Core
 	public function __construct($email, $name = 'default')
 	{
 		$this->email = $email;
-		$this->config = Kohana::config('gravatar')->$name;
+		$this->config = Kohana::$config->load('gravatar')->$name;
 		self::$instances[$email][$name] = $this;
 	}
 
