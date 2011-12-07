@@ -163,10 +163,10 @@ class Gravatar_Core
 	 * Get or set the size of the icon.
 	 *
 	 * @throws  Exception
-	 * @chainable
 	 *
 	 * @param   int   $value   The size of the image (ssetter)
 	 * @return  int            The size of the image (getter)
+	 * @return  Gravatar       This object (setter)
 	 */
 	public function size($value = null)
 	{
@@ -184,10 +184,9 @@ class Gravatar_Core
 	/**
 	 * Get or set the default image.
 	 *
-	 * @chainable
-	 *
 	 * @param   string   $value  The default image (ssetter)
 	 * @return  string           The default image (getter)
+	 * @return  Gravatar         This object (setter)
 	 */
 	public function default_image($value = null)
 	{
@@ -197,10 +196,9 @@ class Gravatar_Core
 	/**
 	 * Get or set the icon rating.
 	 *
-	 * @chainable
-	 *
 	 * @param   string   $value  The rating of the image (ssetter)
 	 * @return  string           The rating of the image (getter)
+	 * @return  Gravatar       This object (setter)
 	 */
 	public function rating($value = null)
 	{
@@ -210,10 +208,9 @@ class Gravatar_Core
 	/**
 	 * Get or set the image attributes.
 	 *
-	 * @chainable
-	 *
-	 * @param   array   $value  Image attributes (ssetter)
+	 * @param   array   $value  Image attributes (setter)
 	 * @return  array           Image attributes (getter)
+	 * @return  Gravatar        This object (setter)
 	 */
 	public function attrs($value = null)
 	{
@@ -225,7 +222,8 @@ class Gravatar_Core
 	 *
 	 * @param    string   $property   The config property to get
 	 * @param    string   $value      The value to set | if null, it will get the value
-	 * @return   mixed                Get: The value | Set: $this
+	 * @return   mixed                The value of the property (getter)
+	 * @return   Gravatar             This object (setter)
 	 */
 	protected function getter_setter($property, $value)
 	{
