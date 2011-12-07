@@ -1,159 +1,244 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 /**
- * The core class for Gravatar images
- * Docs: http://en.gravatar.com/site/implement/url
+ * Gravatar icons for your site.
  *
- * @package	Gravatar
- * @author	Dave Widmer
+ * @see       http://en.gravatar.com/site/implement/images/
+ *
+ * @package   Gravatar
+ * @author    Dave Widmer <dave@davewidmer.net>
  */
 class Gravatar_Core
 {
 	/**
-	 * Constants for the rating system.
+	 * Suitable for display on all websites with any audience type
 	 */
 	const G = 'g';
+
+	/**
+	 * May contain rude gestures, provocatively dressed individuals, the lesser swear words, or mild violence
+	 */
 	const PG = 'pg';
+
+	/**
+	 * May contain such things as harsh profanity, intense violence, nudity, or hard drug use
+	 */
 	const R = 'r';
+
+	/**
+	 * May contain hardcore sexual imagery or extremely disturbing violence
+	 */
 	const X = 'x';
 
-	/** @var	Service url. */
-	protected $url = 'http://www.gravatar.com/avatar/';
+	/**
+	 * The url to the gravatar service
+	 */
+	const URL = "http://www.gravatar.com/avatar/";
 
-	/** @var	Email address. */
-	protected $email;
+	/**
+	 * The url for the gravatar service (using ssl)
+	 */
+	const SECURE_URL = "https://secure.gravatar.com/";
 
-	/** @var	Configuration. */
-	protected $config;
-
-	/** @var	Instances for the gravatars. */
-	protected static $instances = array();
-
-	/** @var	Array of config options. */
-	private $options = array( 'default','size','rating','alt','class' );
-
-	/** @var	Array of default icons you can use. */
-	private $icons = array( 'identicon', 'monsterid', 'wavatar', 404 );
+	/**
+	 * @var   array   List of Gravatar objects
+	 */
+	protected static $_instances = array();
 
 	/**
 	 * Gets an instance (or creates it first) with the given email
 	 *
-	 * @param		string	email address
-	 * @param		string	configuration name
-	 * @return	Gravatar_Core
+	 * @param   string   $email   Email addrewss
+	 * @return  Gravatar
 	 */
-	public static function instance($email, $config = 'default')
+	public static function instance($email)
 	{
-		// Check for email key
-		if( ! array_key_exists($email, self::$instances) ){
-		// No key, create it
-			new Gravatar_Core($email, $config);
-		} else {
-		// Email found, for that config?
-			if( ! array_key_exists($config, self::$instances[$email]) ){
-			// Doesn't exist in that config, need to create it
-				new Gravatar_Core($email, $config);
-			}
+		if ( ! isset(self::$_instances[$email]))
+		{
+			self::$_instances[$email] = new Gravatar($email);
 		}
 
-		return self::$instances[$email][$config];
+		return self::$_instances[$email];
 	}
+
+	/**
+	 * @var   string   The email address
+	 */
+	protected $_email;
+
+	/**
+	 * @var   array    Configuration options.
+	 */
+	protected $_config;
+
+	/**
+	 * @var   string   The last url that was built
+	 */
+	protected $_last_url = null;
+
+	/**
+	 * @var   boolean  Has any of the url data changed since the last url() call?
+	 */
+	protected $_has_changed = true;
 
 	/**
 	 * Creates a new Gravatar instance.
 	 *
-	 * @param string	Email to construct
-	 * @param	string	Config name
+	 * @param   string   $email  Email address
 	 */
-	public function __construct($email, $name = 'default')
+	public function __construct($email)
 	{
-		$this->email = $email;
-		$this->config = Kohana::$config->load('gravatar')->$name;
-		self::$instances[$email][$name] = $this;
+		$this->_email = $email;
+		$this->_config = Kohana::$config->load('gravatar');
 	}
 
 	/**
-	 * Gets this instance as a string
-	 * 
-	 * @return	string		This instance as a string
+	 * Gets the HTML to display the image.
+	 *
+	 * @return   string
+	 */
+	public function render()
+	{
+		return HTML::image($this->url(), $this->_config['attrs'] + array(
+			'width' => $this->_config['size'],
+			'height' => $this->_config['size'],
+		));
+	}
+
+	/**
+	 * Gets this HTML to display the image.
+	 *
+	 * @return   string
 	 */
 	public function __toString()
 	{
-		return View::factory('gravatar')->set('gravatar', $this->build_view_props())->render();
+		return $this->render();
 	}
 
 	/**
-	 * Magic: getter
+	 * Gets the email address associated with this instance.
 	 *
-	 * @param		string	name
-	 * @return	mixed		config value or NULL
+	 * @return   string
 	 */
-	public function __get($name)
+	public function email()
 	{
-		return ( in_array($name, $this->options) ) ?
-						$this->config[$name] :
-						NULL ;
+		return $this->_email;
 	}
 
 	/**
-	 * Magic: setter
+	 * Gets the url for the image.
 	 *
-	 * @param string	name
-	 * @param mixed		value
-	 */
-	public function __set($name, $val)
-	{
-		if( in_array($name, $this->options) ){
-			$this->config[$name] = $val;
-		}
-	}
-
-	/**
-	 * Constructs the image url
-	 * Docs: http://en.gravatar.com/site/implement/php
+	 * @see     http://en.gravatar.com/site/implement/images/php/
 	 *
-	 * @return	string		Image url
+	 * @return  string   Gravatar image url
 	 */
-	private function _construct_url()
+	public function url()
 	{
-		// Base url.
-		$img = $this->url . md5( strtolower($this->email) ) . '.jpg';
-
-		// Size - always there
-		$img .= '?s=' . $this->config['size'];
-
-		// Rating - always there
-		$img .= '&r=' . $this->config['rating'];
-
-		// Default image
-		if( $this->config['default'] ){
-			// Check for default icon, if not, then encode the url
-			if( in_array($this->config['default'], $this->icons) ){
-				$img .= '&d=' . $this->config['default'];
-			} else {
-				$img .= '&d=' . urlencode( $this->config['default'] );
-			} 
+		// Check to see if the url has been built and nothing changed
+		// If so, just return the url instead of rebuilding it
+		if ($this->_last_url !== null AND ! $this->_has_changed)
+		{
+			return $this->_last_url;
 		}
 
-		// Return the url with the jpg extension
-		return $img;
+		$url = (isset($_SERVER['HTTPS']) OR $_SERVER['SERVER_PORT'] === 443) ? self::SECURE_URL : self::URL;
+		$url .= md5(strtolower($this->_email)).'.jpg';
+
+		$props = array(
+			's' => $this->_config['size'],
+			'r' => $this->_config['rating'],
+		);
+
+		if ($this->_config['default_image'] !== false)
+		{
+			$props['d'] = urlencode($this->_config['default_image']);
+		}
+
+		$this->_last_url = $url."?".http_build_query($props);
+		$this->_has_changed = false;
+
+		return $this->_last_url;
 	}
 
 	/**
-	 * Builds the properties for the view.
+	 * Get or set the size of the icon.
 	 *
-	 * @return	stdClass	The properties object for the view
+	 * @throws  Exception
+	 * @chainable
+	 *
+	 * @param   int   $value   The size of the image (ssetter)
+	 * @return  int            The size of the image (getter)
 	 */
-	protected function build_view_props()
+	public function size($value = null)
 	{
-		$g = new stdClass;
+		if ($value !== null)
+		{
+			if ($value < 1 OR $value > 512)
+			{
+				throw new Exception("The Gravatar icon size must be between 1 and 512 pixels");
+			}
+		}
 
-		$g->url = $this->_construct_url();
-		$g->width = $this->config['size'];
-		$g->height = $this->config['size'];
-		$g->alt = ( $this->config['alt'] ) ? $this->config['alt'] : '';
-		$g->class = ( $this->config['class'] ) ? $this->config['class'] : '';
+		return $this->getter_setter('size', $value);
+	}
 
-		return $g;
+	/**
+	 * Get or set the default image.
+	 *
+	 * @chainable
+	 *
+	 * @param   string   $value  The default image (ssetter)
+	 * @return  string           The default image (getter)
+	 */
+	public function default_image($value = null)
+	{
+		return $this->getter_setter('default_image', $value);
+	}
+
+	/**
+	 * Get or set the icon rating.
+	 *
+	 * @chainable
+	 *
+	 * @param   string   $value  The rating of the image (ssetter)
+	 * @return  string           The rating of the image (getter)
+	 */
+	public function rating($value = null)
+	{
+		return $this->getter_setter('rating', $value);
+	}
+
+	/**
+	 * Get or set the image attributes.
+	 *
+	 * @chainable
+	 *
+	 * @param   array   $value  Image attributes (ssetter)
+	 * @return  array           Image attributes (getter)
+	 */
+	public function attrs($value = null)
+	{
+		return $this->getter_setter('attrs', $value);
+	}
+
+	/**
+	 * A vanilla getter/setter function for a lot of properties in this class
+	 *
+	 * @param    string   $property   The config property to get
+	 * @param    string   $value      The value to set | if null, it will get the value
+	 * @return   mixed                Get: The value | Set: $this
+	 */
+	protected function getter_setter($property, $value)
+	{
+		if ($value !== null)
+		{
+			$this->_config[$property] = $value;
+			$this->_has_changed = true;
+			return $this;
+		}
+		else
+		{
+			return $this->_config[$property];
+		}
 	}
 
 } // End Gravatar_Core
