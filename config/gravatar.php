@@ -3,10 +3,10 @@
 return array
 (
 	// Size of the image in pixels
-	'size'    => 60,
+	'size'    => 80,
 
 	// The default image, FALSE is the G, can also use identicon, monsterid, wavatar, retro or 404
-	'default' => 'wavatar',
+	'default_image' => false,
 
 	// Default rating [Gravatar::G, Gravatar::PG, Gravatar::R, Gravatar::X]
 	'rating'  => Gravatar::R,
