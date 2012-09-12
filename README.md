@@ -38,4 +38,4 @@ If you see features that are missing or you want to help make this module better
 
 ---
 
-Developed by [Dave Widmer](http://www.davewidmer.net)
+Developed by [Dave Widmer](http://www.davewidmer.net) -- forked by [Matt Headleand] (http://www.boxxology.com)
