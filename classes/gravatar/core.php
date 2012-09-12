@@ -96,8 +96,12 @@ class Gravatar_Core
 	 *
 	 * @return   string
 	 */
-	public function render()
+	public function render($size = NULL)
 	{
+		if(isset($size)) {
+			$this->_config['size'] = $size;
+		}
+		
 		return HTML::image($this->url(), $this->_config['attrs'] + array(
 			'width' => $this->_config['size'],
 			'height' => $this->_config['size'],

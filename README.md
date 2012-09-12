@@ -25,6 +25,9 @@ echo Gravatar::instance('test@example.com');
 
 // You can also use render
 Gravatar::instance('test@example.com')->render();
+
+// With render you can also set size dynamically, overriding the configuration
+Gravatar::instance('test@example.com')->render(120);
 ~~~
 
 Using `Gravatar::instance` will keep the Gravatar objects around so you won't have duplicate objects for the same email.
@@ -35,4 +38,4 @@ If you see features that are missing or you want to help make this module better
 
 ---
 
-Developed by [Dave Widmer](http://www.davewidmer.net)
+Developed by [Dave Widmer](http://www.davewidmer.net) -- forked by [Matt Headleand] (http://www.boxxology.com)
