@@ -1,0 +1,12 @@
+{
+    "name": "DimazzzZ/kohana-gravatar",
+    "type": "kohana-module",
+    "description": "The gravatar module allows you to easily interact with gravatar.com to display user icons",
+    "keywords": ["kohana", "framework", "gravatar", "avatar"],
+    "require": {
+        "composer/installers": "~1.0",
+        "kohana/core": ">=3.3",
+        "php": ">=5.3.3",
+        "phpunit/phpunit": "3.7.*"
+    }
+}
